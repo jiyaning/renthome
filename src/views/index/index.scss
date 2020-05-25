@@ -1,0 +1,12 @@
+.index-menu{
+  padding-top: 10px;
+  p {
+    font-size: 13px;
+  }
+  img{
+    height: 48px;
+  }
+  &.am-flexbox{
+    text-align: center;
+  }
+}

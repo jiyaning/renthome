@@ -5,19 +5,10 @@ import React from 'react';
 import { Route, Switch, Redirect} from 'react-router-dom';
 import { TabBar } from 'antd-mobile';
 import './index.css';
-
-function Index (){
-  return <div>Index</div>
-}
-function Find (){
-  return <div>Find</div>
-}
-function Info (){
-  return <div>Info</div>
-}
-function My (){
-  return <div>My</div>
-}
+import Index from '../index/index'
+import Find from '../find/index'
+import Info from '../info/index'
+import My from '../my/index'
 
 class Home extends React.Component {
 
@@ -33,37 +24,29 @@ class Home extends React.Component {
     const menuData = [
       {
         title:'主页',
-        key:'index'
+        key:'index',
+        icon: 'icon-ind'
       },
       {
         title:'找房',
-        key:'find'
+        key:'find',
+        icon: 'icon-findHouse'
       },
       {
         title:'资讯',
-        key:'info'
+        key:'info',
+        icon: 'icon-myinfo'
       },
       {
         title:'我的',
-        key:'my'
+        key:'my',
+        icon: 'icon-my'
       },
     ]
     return  menuData.map((item)=>(
       <TabBar.Item
-            icon={
-              <div style={{
-                width: '22px',
-                height: '22px',
-                background: 'url(https://zos.alipayobjects.com/rmsportal/psUFoAMjkCcjqtUCNPxB.svg) center center /  21px 21px no-repeat' }}
-              />
-            }
-            selectedIcon={
-              <div style={{
-                width: '22px',
-                height: '22px',
-                background: 'url(https://zos.alipayobjects.com/rmsportal/IIRLrXXrFAhXVdhMWgUI.svg) center center /  21px 21px no-repeat' }}
-              />
-            }
+            icon={<i className={`iconfont ${item.icon}`}></i>}
+            selectedIcon={<i className={`iconfont ${item.icon}`}></i>}
             title={item.title}
             key={item.key}
             selected={this.state.selectedTab === item.key}
