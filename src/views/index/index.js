@@ -2,13 +2,15 @@
 主页模块
 */
 import React from 'react'
-import { Carousel, Flex, Grid } from 'antd-mobile';
+import { Carousel, Flex, Grid, NavBar, Icon } from 'antd-mobile';
 import axios from 'axios'
 import nav1 from '../../assets/images/nav-1.png'
 import nav2 from '../../assets/images/nav-2.png'
 import nav3 from '../../assets/images/nav-3.png'
 import nav4 from '../../assets/images/nav-4.png'
 import './index.scss'
+import { BASE_IMG_URL } from '../../utils/config'
+import request from '../../utils/request'
 
 class Index extends React.Component {
 
@@ -28,31 +30,34 @@ class Index extends React.Component {
     //     })
     //   }
     // })
-    const res = await axios.get('http://localhost:8080/home/swiper')
+    // const res = await axios.get('http://localhost:8080/home/swiper')
+    const res = await request({url: 'home/swiper'})
     if (res.status == 200) {
       console.log(res)
       this.setState({
-        swiperData: res.data.body
+        swiperData: res.body
       })
     }
   }
 
   loadGroup = async () => {
-    const res = await axios.get('http://localhost:8080/home/groups')
+    // const res = await axios.get('http://localhost:8080/home/groups')
+    const res = await request({url: 'home/groups'})
     if (res.status == 200) {
       console.log(res)
       this.setState({
-        groupsData: res.data.body
+        groupsData: res.body
       })
     }
   }
 
   loadNews = async () => {
-    const res = await axios.get('http://localhost:8080/home/news')
+    // const res = await axios.get('http://localhost:8080/home/news')
+    const res = await request({url: 'home/news'})
     if (res.status == 200) {
       console.log(res)
       this.setState({
-        newsData: res.data.body
+        newsData: res.body
       })
     }
   }
@@ -65,7 +70,7 @@ class Index extends React.Component {
 
   renderSwiper = () => {
     const swiperItems = this.state.swiperData.map(item => (
-      <img key={item.id} src={"http://localhost:8080" + item.imgSrc} alt="" />
+      <img key={item.id} src={BASE_IMG_URL + item.imgSrc} alt="" />
     ))
     return (
       <Carousel dots autoplay infinite>
@@ -125,7 +130,7 @@ class Index extends React.Component {
                 <h3>{item.title}</h3>
                 <p>{item.desc}</p>
               </div>
-              <img src={`http://localhost:8080${item.imgSrc}`} alt="" />
+              <img src={`${BASE_IMG_URL}${item.imgSrc}`} alt="" />
             </Flex>
           )}
         />
@@ -139,7 +144,7 @@ class Index extends React.Component {
         <div className="imgwrap">
           <img
             className="img"
-            src={`http://api-haoke-dev.itheima.net${item.imgSrc}`}
+            src={`${BASE_IMG_URL}${item.imgSrc}`}
             alt=""
           />
         </div>
@@ -157,13 +162,26 @@ class Index extends React.Component {
         <h3 className="group-title">最新资讯</h3>
         {newsTag}
       </div>
+    )
+  }
 
+  renderNav = ()=>{
+    return (
+      <NavBar
+      mode="dark"
+      leftContent="北京"
+      rightContent={[
+        <Icon key="0" type="search" style={{ marginRight: '16px' }} />
+      ]}
+    >首页</NavBar>
     )
   }
 
   render() {
     return (
       <div className='index'>
+        {/* 导航栏 */}
+        {this.renderNav()}
         {/* 轮播图 */}
         {this.renderSwiper()}
         {/* 菜单 */}
