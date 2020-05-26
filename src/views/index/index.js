@@ -2,7 +2,7 @@
 主页模块
 */
 import React from 'react'
-import { Carousel, Flex, } from 'antd-mobile';
+import { Carousel, Flex, Grid } from 'antd-mobile';
 import axios from 'axios'
 import nav1 from '../../assets/images/nav-1.png'
 import nav2 from '../../assets/images/nav-2.png'
@@ -13,7 +13,9 @@ import './index.scss'
 class Index extends React.Component {
 
   state = {
-    swiperData: []
+    swiperData: [],
+    groupsData: [],
+    newsData: []
   }
 
   // 加载轮播图数据
@@ -27,7 +29,6 @@ class Index extends React.Component {
     //   }
     // })
     const res = await axios.get('http://localhost:8080/home/swiper')
-
     if (res.status == 200) {
       console.log(res)
       this.setState({
@@ -36,8 +37,30 @@ class Index extends React.Component {
     }
   }
 
+  loadGroup = async () => {
+    const res = await axios.get('http://localhost:8080/home/groups')
+    if (res.status == 200) {
+      console.log(res)
+      this.setState({
+        groupsData: res.data.body
+      })
+    }
+  }
+
+  loadNews = async () => {
+    const res = await axios.get('http://localhost:8080/home/news')
+    if (res.status == 200) {
+      console.log(res)
+      this.setState({
+        newsData: res.data.body
+      })
+    }
+  }
+
   componentDidMount() {
     this.loadSwiper()
+    this.loadGroup()
+    this.loadNews()
   }
 
   renderSwiper = () => {
@@ -82,14 +105,73 @@ class Index extends React.Component {
     )
   }
 
+  renderGroup = () => {
+    return (
+      <div className="group">
+        {/* 租房小组标题 */}
+        <Flex className="group-title" justify="between">
+          <h3>租房小组</h3>
+          <span>更多</span>
+        </Flex>
+        {/* 租房小组内容 */}
+        < Grid
+          data={this.state.groupsData}
+          columnNum={2}
+          square={false}
+          hasLine={false}
+          renderItem={item => (
+            <Flex className="grid-item" justify="between">
+              <div className="desc">
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </div>
+              <img src={`http://localhost:8080${item.imgSrc}`} alt="" />
+            </Flex>
+          )}
+        />
+      </div>
+    )
+  }
+
+  renderNews = () => {
+    const newsTag = this.state.newsData.map(item => (
+      <div className="news-item" key={item.id}>
+        <div className="imgwrap">
+          <img
+            className="img"
+            src={`http://api-haoke-dev.itheima.net${item.imgSrc}`}
+            alt=""
+          />
+        </div>
+        <Flex className="content" direction="column" justify="between">
+          <h3 className="title">{item.title}</h3>
+          <Flex className="info" justify="between">
+            <span>{item.from}</span>
+            <span>{item.date}</span>
+          </Flex>
+        </Flex>
+      </div>
+    ))
+    return (
+      <div className="news">
+        <h3 className="group-title">最新资讯</h3>
+        {newsTag}
+      </div>
+
+    )
+  }
+
   render() {
     return (
-      <div>
-        <div>主页页面</div>
+      <div className='index'>
         {/* 轮播图 */}
         {this.renderSwiper()}
         {/* 菜单 */}
         {this.renderMenu()}
+        {/* 租房小组 */}
+        {this.renderGroup()}
+        {/* 最新资讯 */}
+        {this.renderNews()}
       </div>
     )
   }

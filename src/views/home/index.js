@@ -4,7 +4,7 @@
 import React from 'react';
 import { Route, Switch, Redirect} from 'react-router-dom';
 import { TabBar } from 'antd-mobile';
-import './index.css';
+import './index.scss';
 import Index from '../index/index'
 import Find from '../find/index'
 import Info from '../info/index'
