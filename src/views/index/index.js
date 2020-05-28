@@ -17,7 +17,8 @@ class Index extends React.Component {
   state = {
     swiperData: [],
     groupsData: [],
-    newsData: []
+    newsData: [],
+    currentCity:'北京'
   }
 
   // 加载轮播图数据
@@ -31,7 +32,7 @@ class Index extends React.Component {
     //   }
     // })
     // const res = await axios.get('http://localhost:8080/home/swiper')
-    const res = await request({url: 'home/swiper'})
+    const res = await request({ url: 'home/swiper' })
     if (res.status == 200) {
       console.log(res)
       this.setState({
@@ -42,7 +43,7 @@ class Index extends React.Component {
 
   loadGroup = async () => {
     // const res = await axios.get('http://localhost:8080/home/groups')
-    const res = await request({url: 'home/groups'})
+    const res = await request({ url: 'home/groups' })
     if (res.status == 200) {
       console.log(res)
       this.setState({
@@ -53,7 +54,7 @@ class Index extends React.Component {
 
   loadNews = async () => {
     // const res = await axios.get('http://localhost:8080/home/news')
-    const res = await request({url: 'home/news'})
+    const res = await request({ url: 'home/news' })
     if (res.status == 200) {
       console.log(res)
       this.setState({
@@ -62,15 +63,33 @@ class Index extends React.Component {
     }
   }
 
+  getCurrentCity = ()=>{
+    let current = window.localStorage.getItem('current_city')
+    if(current){
+      let city = JSON.parse(current)
+      this.setState({
+        currentCity:city.label
+      })
+    }
+  }
+
   componentDidMount() {
     this.loadSwiper()
     this.loadGroup()
     this.loadNews()
+    this.getCurrentCity()
   }
 
   renderSwiper = () => {
     const swiperItems = this.state.swiperData.map(item => (
-      <img key={item.id} src={BASE_IMG_URL + item.imgSrc} alt="" />
+      <img
+        key={item.id}
+        src={BASE_IMG_URL + item.imgSrc}
+        alt=""
+        onLoad={() => {
+          // 图片加载完成后触发，手动触发一个resize事件，通知轮播图尺寸发生了变化
+          window.dispatchEvent(new Event('resize'))
+        }} />
     ))
     return (
       <Carousel dots autoplay infinite>
@@ -165,20 +184,20 @@ class Index extends React.Component {
     )
   }
 
-  renderNav = ()=>{
+  renderNav = () => {
     return (
       <NavBar
-      mode="dark"
-      leftContent="北京"
-      onLeftClick ={()=>{
-         // 左侧点击事件
-         // 跳转到城市选择的页面
-        this.props.history.push('/city')
-      }}
-      rightContent={[
-        <Icon key="0" type="search" style={{ marginRight: '16px' }} />
-      ]}
-    >首页</NavBar>
+        mode="dark"
+        leftContent={this.state.currentCity}
+        onLeftClick={() => {
+          // 左侧点击事件
+          // 跳转到城市选择的页面
+          this.props.history.push('/city')
+        }}
+        rightContent={[
+          <Icon key="0" type="search" style={{ marginRight: '16px' }} />
+        ]}
+      >首页</NavBar>
     )
   }
 

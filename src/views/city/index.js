@@ -2,7 +2,7 @@
 城市选择列表
 */
 import React from 'react'
-import { NavBar, Icon } from 'antd-mobile';
+import { NavBar, Icon, Toast } from 'antd-mobile';
 import request from '../../utils/request'
 // 导入长列表缓存组件和样式
 import { AutoSizer, List } from 'react-virtualized'
@@ -121,7 +121,23 @@ class City extends React.Component {
     const list = cityObj[letter]
     // 动态生成城市列表
     const cityTags = list.map((item, index) => (
-      <div className="name" key={item.value + index}>{item.label}</div>
+      <div 
+      className="name" 
+      key={item.value + index} 
+      onClick={()=>{
+         // 仅仅允许选择一线城市
+         let firstCity = cityObj['hot']
+         let flag = firstCity.some(city=>{
+          return  item.label === city.label
+         })
+         if(flag){
+           window.localStorage.setItem('current_city',JSON.stringify(item))
+           this.props.history.push('/home/index')
+         }else{
+          Toast.info('只允许选择一线热门城市', 1)
+         }
+      }}
+      >{item.label}</div>
     ))
     return (
       <div key={key} style={style} className="city">
@@ -140,7 +156,7 @@ class City extends React.Component {
           const { cityIndex } = this.state.cityData
           return cityIndex && <List
             width={width}
-            height={document.documentElement.clientHeight - 45}
+            height={height - 45}
             rowCount={cityIndex.length}
             rowHeight={this.calcRowHeight}
             rowRenderer={this.rowRenderer}

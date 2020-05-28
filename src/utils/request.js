@@ -13,7 +13,8 @@ export default({method = 'get',url,data,params}) =>{
   // return的结果是Promise实例对象
   return axios({
     // 请求基准路径
-    baseURL:'http://localhost:8080',
+    baseURL:'http://localhost:8080',    //本地服务地址
+    // baseURL:'http://api-haoke-dev.itheima.net',    //线上地址
     // 请求方式（默认是get)
     method:method,
     // 请求地址

@@ -7,6 +7,7 @@ import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom'
 import Login from './views/login/index'
 import Home from './views/home/index'
 import City from './views/city/index'
+import MapUse from './views/map/index'
 
 // 导入字体图标
 import '../src/assets/fonts/iconfont.css'
@@ -23,6 +24,7 @@ function App() {
         <Route path = '/login' component = { Login } />  
         <Route path = '/home' component = { Home } />  
         <Route path= '/city' component = {City} />
+        <Route path= '/map' component = {MapUse} />
         <Route component = { NotFound } />  
         </Switch> 
         </BrowserRouter>
