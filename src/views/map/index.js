@@ -6,46 +6,37 @@ import { Toast } from 'antd-mobile';
 
 class MapUse extends React.Component {
 
-  state={
-    longitude:'116.404',
-    latitude:'39.915'
+  state = {
+    longitude: '',
+    latitude: ''
   }
 
   getLocation = () => {
-    console.log("地理定位")
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(this.showPosition, this.showError);
-    }
-    else {
-      Toast.info('您的浏览器不支持地理定位！', 2)
-    }
+    // 基于浏览器定位，优先调用浏览器H5定位接口，如果失败会调用IP定位
+    const geolocation = new window.BMap.Geolocation();
+    let that =this
+    geolocation.getCurrentPosition(function (res) {
+      if (this.getStatus() === window.BMAP_STATUS_SUCCESS) {
+        console.log(res.address.city)
+        Toast.info('您的位置：' + res.point.lng + ',' + res.point.lat);
+        that.setState({
+          longitude: res.point.lng,
+          latitude: res.point.lat
+        })
+        that.createMap()
+      }
+      else {
+        Toast.info('获取定位失败!');
+      }
+    });
   }
 
-  showPosition = (position) => {
-    console.log(position)
-    var longitudeValue = position.coords.longitude;  //获得当前位置的经度
-    var latitudeValue = position.coords.latitude;    //获得当前位置的纬度
-    console.log("经度："+longitudeValue+"---纬度："+latitudeValue);
-    if(longitudeValue !== null || longitudeValue !==''){
-      this.setState({
-        longitude:longitudeValue,
-        latitude:latitudeValue
-      })
-    }
-    this.createMap()
-  }
-
-  showError = (error)=>{
-    console.log(error);
-    Toast.info("获取用户位置失败！", 2)
-  }
-
-  createMap = ()=>{
+  createMap = () => {
     // 初始化地图
     // 1、创建地图实例对象
-    const map = new window.BMapGL.Map("container")
+    const map = new window.BMap.Map("container")
     // 2、创建地图中心点坐标
-    const point = new window.BMapGL.Point(this.state.longitude,this.state.latitude)
+    const point = new window.BMap.Point(this.state.longitude, this.state.latitude)
     // 3、设置地图的中心点坐标和缩放级别 
     map.centerAndZoom(point, 12)
     // 开启鼠标滚轮缩放
@@ -53,8 +44,8 @@ class MapUse extends React.Component {
   }
 
   componentDidMount() {
+    // 
     this.getLocation()
-    this.createMap()
   }
 
   render() {

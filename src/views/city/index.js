@@ -4,6 +4,7 @@
 import React from 'react'
 import { NavBar, Icon, Toast } from 'antd-mobile';
 import request from '../../utils/request'
+import { getCurrentCity } from '../../utils/config'
 // 导入长列表缓存组件和样式
 import { AutoSizer, List } from 'react-virtualized'
 import 'react-virtualized/styles.css'
@@ -12,35 +13,62 @@ import './index.scss'
 class City extends React.Component {
 
   state = {
-    cityData: {}
+    cityData: {},
+    currentIndex: 0
   }
 
+  // 创建一个List组件的引用
+  listRef = React.createRef()
+
   loadCitys = async () => {
-    // 获取城市列表的原始数据
-    const res = await request({ url: 'area/city', params: { level: 1 } })
-    // 把原始城市列表数据进行分组
-    if (res.status == 200) {
-      console.log(res.body)
-      const cityData = this.formatCityList(res.body)
+    // 数据开始加载时进行提示
+    Toast.loading('正在加载...', 0)
+    // 判断本地缓存是否有城市列表数据
+    const cityList = window.localStorage.getItem('city_List')
+    if (cityList == null) {
+      // 获取城市列表的原始数据
+      const res = await request({ url: 'area/city', params: { level: 1 } })
+      // 把原始城市列表数据进行分组
+      if (res.status === 200) {
+        console.log(res.body)
+        const cityData = this.formatCityList(res.body)
 
-      // 获取热门城市数据
-      const hotCity = await request({ url: 'area/hot' })
-      if (hotCity.status == 200) {
-        cityData.cityObj['hot'] = hotCity.body
-        cityData.cityIndex.unshift('hot')
+        // 获取热门城市数据
+        const hotCity = await request({ url: 'area/hot' })
+        if (hotCity.status === 200) {
+          cityData.cityObj['hot'] = hotCity.body
+          cityData.cityIndex.unshift('hot')
+        }
+
+        // 当前城市数据处理（当前城市信息通过地理定位获取）
+        // 基于浏览器定位，优先调用浏览器H5定位接口，如果失败会调用IP定位
+
+        const city = await getCurrentCity()
+        cityData.cityObj['#'] = [city]
+        cityData.cityIndex.unshift('#')
+        // 把分好组的城市列表数据更新到状态
+        this.setState({
+          cityData: cityData
+        }, () => {
+          // 获取完数据提前计算List索引行的高度，保证可以进准控制滚动位置
+          this.listRef.current.measureAllRows()
+          // 隐藏提示
+          Toast.hide()
+          window.localStorage.setItem('city_List', JSON.stringify(this.state.cityData))
+          setTimeout(() => {
+            window.localStorage.removeItem('city_List')
+            console.log("缓存城市列表已清除")
+          }, 1000 * 60 * 60)
+        })
       }
-
-      // 当前城市数据处理（当前城市信息应该通过地理定位获取）
-      cityData.cityObj['#'] = [{ label: '北京' }]
-      cityData.cityIndex.unshift('#')
-
-      // 把分好组的城市列表数据更新到状态
+    } else {
       this.setState({
-        cityData: cityData
+        cityData: JSON.parse(cityList)
       })
+      Toast.hide()
     }
-    console.log(this.state.cityData)
 
+    console.log(this.state.cityData)
   }
 
   formatCityList = (cityList) => {
@@ -121,22 +149,22 @@ class City extends React.Component {
     const list = cityObj[letter]
     // 动态生成城市列表
     const cityTags = list.map((item, index) => (
-      <div 
-      className="name" 
-      key={item.value + index} 
-      onClick={()=>{
-         // 仅仅允许选择一线城市
-         let firstCity = cityObj['hot']
-         let flag = firstCity.some(city=>{
-          return  item.label === city.label
-         })
-         if(flag){
-           window.localStorage.setItem('current_city',JSON.stringify(item))
-           this.props.history.push('/home/index')
-         }else{
-          Toast.info('只允许选择一线热门城市', 1)
-         }
-      }}
+      <div
+        className="name"
+        key={item.value + index}
+        onClick={() => {
+          // 仅仅允许选择一线城市
+          let firstCity = cityObj['hot']
+          let flag = firstCity.some(city => {
+            return item.label === city.label
+          })
+          if (flag) {
+            window.localStorage.setItem('current_city', JSON.stringify(item))
+            this.props.history.push('/home/index')
+          } else {
+            Toast.info('只允许选择一线热门城市', 1)
+          }
+        }}
       >{item.label}</div>
     ))
     return (
@@ -145,6 +173,15 @@ class City extends React.Component {
         {cityTags}
       </div>
     )
+  }
+
+  onRowsRendered = ({ startIndex }) => {
+    if (this.state.currentIndex !== startIndex) {
+      console.log(startIndex)
+      this.setState({
+        currentIndex: startIndex
+      })
+    }
   }
 
   renderCityList = () => {
@@ -157,12 +194,39 @@ class City extends React.Component {
           return cityIndex && <List
             width={width}
             height={height - 45}
+            ref={this.listRef}
+            scrollToAlignment="start"
+            onRowsRendered={this.onRowsRendered}
             rowCount={cityIndex.length}
             rowHeight={this.calcRowHeight}
             rowRenderer={this.rowRenderer}
           />
         }}
       </AutoSizer>
+    )
+  }
+
+  renderRightIndex = () => {
+    const { cityIndex } = this.state.cityData
+    const { currentIndex } = this.state
+    const indexTags = cityIndex && cityIndex.map((item, index) => (
+      <li
+        onClick={() => {
+          // 点击右侧索引控制左侧列表的滚动
+          // current表示List组件的实例对象
+          this.listRef.current.scrollToRow(index)
+        }}
+        key={index}
+        className="city-index-item">
+        <span className={currentIndex === index ? 'index-active' : ''}>
+          {item === 'hot' ? '热' : item.toUpperCase()}
+        </span>
+      </li>
+    ))
+    return (
+      <ul className='city-index'>
+        {indexTags}
+      </ul>
     )
   }
 
@@ -191,6 +255,8 @@ class City extends React.Component {
         >城市选择</NavBar>
         {/* 城市选择列表 */}
         {this.renderCityList()}
+        {/* 右侧字符索引 */}
+        {this.renderRightIndex()}
       </div>
     )
   }

@@ -3,13 +3,12 @@
 */
 import React from 'react'
 import { Carousel, Flex, Grid, NavBar, Icon } from 'antd-mobile';
-import axios from 'axios'
 import nav1 from '../../assets/images/nav-1.png'
 import nav2 from '../../assets/images/nav-2.png'
 import nav3 from '../../assets/images/nav-3.png'
 import nav4 from '../../assets/images/nav-4.png'
 import './index.scss'
-import { BASE_IMG_URL } from '../../utils/config'
+import { BASE_IMG_URL, getCurrentCity } from '../../utils/config'
 import request from '../../utils/request'
 
 class Index extends React.Component {
@@ -18,7 +17,7 @@ class Index extends React.Component {
     swiperData: [],
     groupsData: [],
     newsData: [],
-    currentCity:'北京'
+    currentCity: ''
   }
 
   // 加载轮播图数据
@@ -33,7 +32,7 @@ class Index extends React.Component {
     // })
     // const res = await axios.get('http://localhost:8080/home/swiper')
     const res = await request({ url: 'home/swiper' })
-    if (res.status == 200) {
+    if (res.status === 200) {
       console.log(res)
       this.setState({
         swiperData: res.body
@@ -44,7 +43,7 @@ class Index extends React.Component {
   loadGroup = async () => {
     // const res = await axios.get('http://localhost:8080/home/groups')
     const res = await request({ url: 'home/groups' })
-    if (res.status == 200) {
+    if (res.status === 200) {
       console.log(res)
       this.setState({
         groupsData: res.body
@@ -55,7 +54,7 @@ class Index extends React.Component {
   loadNews = async () => {
     // const res = await axios.get('http://localhost:8080/home/news')
     const res = await request({ url: 'home/news' })
-    if (res.status == 200) {
+    if (res.status === 200) {
       console.log(res)
       this.setState({
         newsData: res.body
@@ -63,21 +62,20 @@ class Index extends React.Component {
     }
   }
 
-  getCurrentCity = ()=>{
-    let current = window.localStorage.getItem('current_city')
-    if(current){
-      let city = JSON.parse(current)
+  // 获取当前城市名称
+  getCurrent_City = () => {
+    getCurrentCity().then((res) => {
       this.setState({
-        currentCity:city.label
+        currentCity: res.label
       })
-    }
+    })
   }
 
   componentDidMount() {
     this.loadSwiper()
     this.loadGroup()
     this.loadNews()
-    this.getCurrentCity()
+    this.getCurrent_City()
   }
 
   renderSwiper = () => {

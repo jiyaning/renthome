@@ -63,7 +63,7 @@ class Home extends React.Component {
 
   render (){
     return (
-      <div class='home-menu'>
+      <div className='home-menu'>
         {/*路由组件显示的位置*/}
         <Switch>
           <Redirect from='/home' exact to='/home/index'></Redirect>
