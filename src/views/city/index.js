@@ -207,11 +207,18 @@ class City extends React.Component {
   }
 
   renderRightIndex = () => {
+    // 渲染右侧索引
     const { cityIndex } = this.state.cityData
     const { currentIndex } = this.state
     const indexTags = cityIndex && cityIndex.map((item, index) => (
       <li
         onClick={() => {
+          // 控制点击索引时精准定位,通过定时任务让更新动作最后触发
+          setTimeout(()=>{
+            this.setState({
+              currentIndex: index
+            })
+          },0)
           // 点击右侧索引控制左侧列表的滚动
           // current表示List组件的实例对象
           this.listRef.current.scrollToRow(index)

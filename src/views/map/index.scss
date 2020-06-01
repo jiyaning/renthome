@@ -1,0 +1,21 @@
+#container{
+  position: fixed !important;
+  top: 45px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  .map-overlay {
+    width: 70px;
+    height: 70px;
+    background-color: #24B96C;
+    border-radius: 35px;
+    color: #fff;
+    text-align: center;
+    padding-top: 16px;
+  }
+  .map-overlay-area {
+    background-color: #24B96C;
+    color: #fff;
+    padding: 5px;
+  }
+}

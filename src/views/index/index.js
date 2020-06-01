@@ -193,7 +193,11 @@ class Index extends React.Component {
           this.props.history.push('/city')
         }}
         rightContent={[
-          <Icon key="0" type="search" style={{ marginRight: '16px' }} />
+          <Icon key="0" type="search" style={{ marginRight: '16px' }}  
+          onClick={()=>{
+            // 右侧点击事件，跳转到地图页面
+            this.props.history.push('/map')
+          }}/>
         ]}
       >首页</NavBar>
     )
