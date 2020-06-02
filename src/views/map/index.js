@@ -4,14 +4,16 @@
 import React from 'react'
 import { NavBar, Icon, Toast } from 'antd-mobile';
 import './index.scss'
-import { getCurrentCity } from '../../utils/config'
+import { getCurrentCity, BASE_IMG_URL } from '../../utils/config'
 import request from '../../utils/request';
 class MapUse extends React.Component {
 
   state = {
     longitude: '',
     latitude: '',
-    houseData: []    // 地图覆盖物数据
+    houseData: [],    // 地图覆盖物数据
+    areaList: [],     // 小区房源列表
+    isShow: false     // 控制列表展示或者隐藏
   }
 
   // 获取一级覆盖物数据
@@ -62,14 +64,25 @@ class MapUse extends React.Component {
     // label表示一个覆盖物
     let label = new window.BMap.Label(overInfo, opts);
     // 给覆盖物绑定事件
-    label.addEventListener('click', () => {
+    label.addEventListener('click', (e) => {
       if (type === 'first') {
         // 绘制二级覆盖物
         this.drawSecondLevelOverlay(map, overlayData)
       } else if (type === 'second') {
         this.drawThirdLevelOverlay(map, overlayData)
       } else {
-        this.showHouseList()
+        this.showHouseList(overlayData.value)
+        // 控制地图的移动
+        // 获取点击时鼠标的位置坐标
+        const { clientX, clientY } = e.changedTouches[0]
+        // 获取地图中心点坐标
+        const x0 = window.innerWidth / 2
+        const y0 = (window.innerHeight - 330) / 2
+        // 地图移动的距离（必须使用中心点坐标-点击位置的坐标）
+        const x = x0 - clientX
+        const y = y0 - clientY
+        // 调用地图的API实现地图的移动
+        map.panBy(x, y)
       }
 
     })
@@ -144,8 +157,22 @@ class MapUse extends React.Component {
   }
 
   // 展示房源列表
-  showHouseList = () => {
-    console.log('房源')
+  showHouseList = async (id) => {
+    const res = await request({
+      url: 'houses',
+      params: {
+        cityId: id
+      }
+    })
+    if (res.status === 200) {
+      console.log(res)
+      this.setState({
+        areaList: res.body.list,
+        // 加载完数据显示房源列表
+        isShow: true
+      })
+
+    }
   }
 
   createMap = async () => {
@@ -176,6 +203,14 @@ class MapUse extends React.Component {
         // 开启鼠标滚轮缩放
         map.enableScrollWheelZoom(true);
 
+        // 给地图绑定移动事件
+        map.addEventListener('movestart', () => {
+          this.setState({
+            // 隐藏房源列表
+            isShow: false
+          })
+        })
+
         // 批量绘制一级覆盖物
         this.drawFirstLevelOverlay(map)
       }, '中国')
@@ -188,6 +223,49 @@ class MapUse extends React.Component {
     await this.loadFirstLevelData()
     // 初始化地图
     this.createMap()
+  }
+
+  renderAreaList = () => {
+    const { areaList } = this.state
+    const listTag = areaList.map(item => (
+      <div className='house' key={item.houseCode}>
+        <div className='img-wrap'>
+          <img className='img' src={BASE_IMG_URL + item.houseImg} alt="" />
+        </div>
+        <div className='content'>
+          <h3 className='title'>{item.title}</h3>
+          <div className='desc'>{item.desc}</div>
+          <div>
+            {item.tags && item.tags.map((item, index) => {
+              // tagCls类名所有需要从1-3进行变化
+              let i = (index + 1) % 3 === 0 ? 3 : (index + 1) % 3
+              let tagCls = 'tag' + i
+              return (
+                <span key={index} className={['tag', tagCls].join(' ')}>
+                  {item}
+                </span>
+              )
+            })}
+          </div>
+          <div className='price'>
+            <span className='price-num'>{item.price}</span> 元/月
+          </div>
+        </div>
+      </div>
+    ))
+    return (
+      <div className={['house-list', this.state.isShow ? 'show' : ''].join(' ')}>
+        <div className='title-wrap'>
+          <h1 className='list-title'>房屋列表</h1>
+          <a className='title-more' href="/house/list">
+            更多房源
+          </a>
+        </div>
+        <div className='house-items'>
+          {listTag}
+        </div>
+      </div>
+    )
   }
 
   render() {
@@ -204,6 +282,8 @@ class MapUse extends React.Component {
         >地图找房</NavBar>
         {/* 地图区域 */}
         <div id="container"></div>
+        {/*房源列表的模板*/}
+        {this.renderAreaList()}
       </div>
     )
   }
